@@ -1,6 +1,13 @@
+import os
+import json
+import redis
 import csv
 import requests
 from datetime import datetime
+
+# Assuming you have the REDIS_URL environment variable set in your Heroku config
+redis_url = os.getenv('REDIS_URL', 'rediss://:p03018364637cba043de46639d51e881292d2af6084355f00753b668c516f31ca@ec2-44-221-169-43.compute-1.amazonaws.com:8590')  # Fallback to localhost if REDIS_URL is not set
+redis_conn = redis.Redis.from_url(redis_url, ssl_cert_reqs=None)
 
 # URLs for the GBFS feeds
 station_status_url = "https://gbfs.lyft.com/gbfs/2.3/dca-cabi/en/station_status.json"
@@ -16,6 +23,10 @@ station_id_mapping = {
 # Fetch station status
 response = requests.get(station_status_url)
 status_data = response.json()
+
+# Store fetched data in Redis
+redis_conn.set('station_status', json.dumps(status_data))
+redis_conn.expire('station_status', 3600)  # Expires after 1 hour
 
 # Current time for logging, formatted as a string
 now = datetime.now().strftime('%H:%M:%S')
