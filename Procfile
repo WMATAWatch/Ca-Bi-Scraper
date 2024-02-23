@@ -1,1 +1,1 @@
-worker: CaBiScraper.0
+python CaBiScraper.py
